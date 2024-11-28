@@ -82,4 +82,3 @@ enum {
 };
 
 void runUARTHead();
-void logBTFrame(const char btdata[], int len);

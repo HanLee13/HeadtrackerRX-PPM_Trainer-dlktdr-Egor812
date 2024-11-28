@@ -14,6 +14,14 @@
 #include "esp_timer.h"
 #include "frskybt.h"
 #include "settings.h"
+#include "ppm.h"
+
+//CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
+#include "driver/usb_serial_jtag.h"
+#include "esp_vfs_usb_serial_jtag.h"
+#include "esp_vfs_dev.h"
+#include <fcntl.h>
+
 
 #define LOG_UART "UART"
 
@@ -54,6 +62,12 @@ int laddcnt = 0;
 
 char rmtaddress[13] = "000000000000";
 char reusablebuff[REUSABLE_BUFFER];
+
+void setBtCentralState( btcentralstate newbtCentralState)
+{
+  btCentralState = newbtCentralState;
+  ESP_LOGI(LOG_UART, "btCentralState = %d", btCentralState);
+}
 
 void sendBTMode()
 {
@@ -102,7 +116,7 @@ void parserATCommand(char atcommand[])
       // Store Remote Address to Connect to
       strcpy(rmtaddress, atcommand + 4);
       // Start connection
-      btCentralState = CENTRAL_STATE_CONNECT;
+      setBtCentralState ( CENTRAL_STATE_CONNECT );
     } else {
       UART_WRITE_STRING(uart_num, "ERROR");
     }
@@ -125,12 +139,12 @@ void parserATCommand(char atcommand[])
       UART_WRITE_STRING(uart_num, "OK+DISCS\r\n");
       laddcnt = 0;
       if (btCentralState != CENTRAL_STATE_SCAN_START && btCentralState != CENTRAL_STATE_SCANNING)
-        btCentralState = CENTRAL_STATE_SCAN_START;
+        setBtCentralState ( CENTRAL_STATE_SCAN_START );
     }
 
   } else if (strncmp(atcommand, "+CLEAR", 6) == 0) {
     if (curMode == ROLE_BLE_CENTRAL) {
-      btCentralState = CENTRAL_STATE_DISCONNECT;
+      setBtCentralState ( CENTRAL_STATE_DISCONNECT );
       UART_WRITE_STRING(uart_num, "OK+CLEAR\r\n");
     }
 
@@ -169,7 +183,7 @@ uart_config_t uart_config = {
     .parity = UART_PARITY_DISABLE,
     .stop_bits = UART_STOP_BITS_1,
     .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-    .source_clk = UART_SCLK_APB,
+    .source_clk = UART_SCLK_DEFAULT, //UART_SCLK_APB,
 };
 
 void setBaudRate(uint32_t baudRate)
@@ -186,36 +200,58 @@ circular_buffer uartinbuf;
 
 void runUARTHead()
 {
+  //USB UART
+  usb_serial_jtag_driver_config_t usb_serial_jtag_config;
+  usb_serial_jtag_config.rx_buffer_size = UART_RX_BUFFER;
+  usb_serial_jtag_config.tx_buffer_size = UART_RX_BUFFER;
+  ESP_ERROR_CHECK(usb_serial_jtag_driver_install(&usb_serial_jtag_config));
+  char *data_usb = (char *) malloc(UART_RX_BUFFER);
+  if (data_usb == NULL) {
+    ESP_LOGE(LOG_UART, "No Memory!!!!!\nHALT");
+    for (;;) {
+    }
+  }    
+  
   // Setup UART Port
   ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
   ESP_ERROR_CHECK(
       uart_driver_install(uart_num, UART_RX_BUFFER * 2, UART_RX_BUFFER * 2, 0, NULL, 0));
   ESP_ERROR_CHECK(
       uart_set_pin(uart_num, UART_TXPIN, UART_RXPIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
-
   cb_init(&uartinbuf, UART_RX_BUFFER * 2);
+  char* data = (char*)malloc(UART_RX_BUFFER + 1);
+  if (data == NULL) {
+    ESP_LOGE(LOG_UART, "No Memory!!!!!\nHALT");
+    for (;;) {
+    }
+  }  
+
+    //snprintf(reusablebuff, sizeof(reusablebuff), "\r\nSerial monitor test\r\n"); 
+    //usb_serial_jtag_write_bytes((const char *) reusablebuff, strlen(reusablebuff), 20 / portTICK_PERIOD_MS); //как вариант
 
   ESP_LOGI(LOG_UART, "Waiting for settings to be read");
   while (!settings_ok) {
     vTaskDelay(50);
   };  // Pause until settings are read
+
   ESP_LOGI(LOG_UART, "Setting initial role");
   if (settings.role == ROLE_UNKNOWN) {
     ESP_LOGE(LOG_UART, "Invalid role loaded, defaulting to central");
     settings.role = ROLE_BLE_CENTRAL;
   }
   setRole(settings.role);
-
-  char* data = (char*)malloc(UART_RX_BUFFER + 1);
-  if (data == NULL) {
-    ESP_LOGE(LOG_UART, "No Memory!!!!!\nHALT");
-    for (;;) {
-    }
-  }
+  
 
   while (1) {
+
     int cnt = uart_read_bytes(uart_num, data, UART_RX_BUFFER, 0);
-    for (int i = 0; i < cnt; i++) cb_push_back(&uartinbuf, &data[i]);
+    if( cnt>0 ) {
+      for (int i = 0; i < cnt; i++) cb_push_back(&uartinbuf, &data[i]);
+    }
+    else{
+      int len_usb = usb_serial_jtag_read_bytes( data_usb, (UART_RX_BUFFER - 1), 20 / portTICK_PERIOD_MS);
+      for (int i = 0; i < len_usb; i++) cb_push_back(&uartinbuf, &data_usb[i]);
+    }
 
     char c;
     while (!cb_pop_front(&uartinbuf, &c)) {
@@ -250,6 +286,7 @@ void runUARTHead()
     vTaskDelay(1);
   }
   free(data);
+  free(data_usb);
   vTaskDelete(NULL);
 }
 
@@ -274,9 +311,11 @@ void setRole(role_t role)
   // Initialize
   switch (curMode) {
     case ROLE_BLE_CENTRAL:
-      btCentralState = CENTRAL_STATE_DISCONNECT;
+      setBtCentralState ( CENTRAL_STATE_DISCONNECT );
       bt_init();
       btcInit();
+      setBtCentralState ( CENTRAL_STATE_SCAN_START );
+      runPPM();
       break;
     case ROLE_BLE_PERIPHERAL:
       btPeripherialState = PERIPHERIAL_STATE_DISCONNECTED;
@@ -302,7 +341,7 @@ void runBTCentral()
     case CENTRAL_STATE_SCAN_START: {
       laddcnt = 0;
       btc_start_scan();
-      btCentralState = CENTRAL_STATE_SCANNING;
+      setBtCentralState (CENTRAL_STATE_SCANNING);
       break;
     }
 
@@ -316,20 +355,21 @@ void runBTCentral()
       }
       laddcnt = bt_scanned_address_cnt;
       if (btc_scan_complete) {
-        btCentralState = CENTRAL_STATE_SCAN_COMPLETE;
+        setBtCentralState(CENTRAL_STATE_SCAN_COMPLETE);
       }
       break;
     }
     case CENTRAL_STATE_SCAN_COMPLETE: {
       UART_WRITE_STRING(uart_num, "OK+DISCE\r\n");
-      btCentralState = CENTRAL_STATE_IDLE;
+      setBtCentralState( CENTRAL_STATE_IDLE );
       break;
     }
     case CENTRAL_STATE_IDLE: {
+      strcpy( rmtaddress, settings.rmtbtaddr);
       // TODO Automatically try to connect to the last known bluetooth address
       // esp_bd_addr_t btaddr;
       // if(!readBTAddress(btaddr)) {
-      //  btCentralState = CENTRAL_STATE_CONNECT;
+      setBtCentralState( CENTRAL_STATE_CONNECT );
       //}
       // Do Nothing
       break;
@@ -340,11 +380,12 @@ void runBTCentral()
       esp_bd_addr_t addr;
       strtobtaddr(addr, rmtaddress);
       btc_connect(addr);
-      btCentralState = CENTRAL_STATE_WAITING_CONNECTION;
+      setBtCentralState( CENTRAL_STATE_WAITING_CONNECTION );
       break;
     }
     case CENTRAL_STATE_WAITING_CONNECTION: {
-      if (btc_scan_complete) {
+      if (btc_scan_complete) 
+      {
         if (btc_validslavefound) {
           sprintf(reusablebuff, "Connected:%s\r\n", rmtaddress);
           uart_write_bytes(uart_num, reusablebuff, strlen(reusablebuff));
@@ -355,11 +396,11 @@ void runBTCentral()
           uart_write_bytes(uart_num, reusablebuff, strlen(reusablebuff));
           sprintf(reusablebuff, "Board:%s\r\n", str_ble_board_types[btc_board_type]);
           uart_write_bytes(uart_num, reusablebuff, strlen(reusablebuff));
-          btCentralState = CENTRAL_STATE_CONNECTED;
+          setBtCentralState( CENTRAL_STATE_CONNECTED );
           // TODO: Add
 
         } else {
-          btCentralState = CENTRAL_STATE_DISCONNECT;
+          setBtCentralState( CENTRAL_STATE_DISCONNECT );
         }
       }
       break;
@@ -367,7 +408,7 @@ void runBTCentral()
 
     case CENTRAL_STATE_CONNECTED: {
       if (!btc_connected) {  // Connection Lost
-        btCentralState = CENTRAL_STATE_CONNECT;
+        setBtCentralState( CENTRAL_STATE_CONNECT );
       }
     }
   }

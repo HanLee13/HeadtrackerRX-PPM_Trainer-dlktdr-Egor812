@@ -22,10 +22,11 @@
 
 #elif defined(PCB_C3MINI)
 
-#define UART_NUM UART_NUM_1
+#define UART_NUM UART_NUM_0
 #define UART_TXPIN 4
 #define UART_RXPIN 5
 //#define LEDPIN 6
+#define PPM_PIN 2  //GPIO2 = D0 - Пин подключения PPM
 
 #else
 
@@ -38,6 +39,8 @@
 #define BAUD_RESET_TIMER 1000000 // us
 #define BAUD_DEFAULT 115200
 #define BAUD_MAXIMUM 921600
+
+
 
 // Optional Debugging Options
 #define DEBUG_TIMERS

@@ -19,6 +19,9 @@ void saveSettings()
   settings_t flashsettings;
   _loadSettings(&flashsettings);
 
+  //ESP_LOGI(LOG_SET, "Saved settings: Role=%d Addr=%s", flashsettings.role, flashsettings.rmtbtaddr);
+  //ESP_LOGI(LOG_SET, "New settings: Role=%d Addr=%s", settings.role, settings.rmtbtaddr);
+
   if (!memcmp((void *)&flashsettings, (void *)&settings, sizeof(settings_t))) {
     ESP_LOGI(LOG_SET, "No data differs, not writing to flash");
     return;

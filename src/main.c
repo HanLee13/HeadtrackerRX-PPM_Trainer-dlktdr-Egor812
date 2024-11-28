@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "bt.h"
+#include "ppm.h"
 #include "defines.h"
 #include "driver/adc.h"
 #include "driver/gpio.h"
@@ -48,7 +49,7 @@ void runBlinky()
 void app_main(void)
 {
   TaskHandle_t tUartHnd = NULL;
-  xTaskCreate(runUARTHead, "UART", 4096, NULL, tskIDLE_PRIORITY + 2, &tUartHnd);
+  xTaskCreate(runUARTHead, "UART", 8192, NULL, tskIDLE_PRIORITY + 2, &tUartHnd);
   configASSERT(tUartHnd);
 
 #if defined(LEDPIN)
@@ -59,7 +60,7 @@ void app_main(void)
 
   esp_err_t ret;
 
-  /* Initialize NVS. */
+  // Initialize NVS. 
   ret = nvs_flash_init();
   if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
     ESP_ERROR_CHECK(nvs_flash_erase());

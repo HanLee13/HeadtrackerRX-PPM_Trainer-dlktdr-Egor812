@@ -334,9 +334,9 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
              * we used first 'descr_elem_result' */
             if (count > 0 && descr_elem_result[0].uuid.len == ESP_UUID_LEN_16 &&
                 descr_elem_result[0].uuid.uuid.uuid16 == ESP_GATT_UUID_CHAR_CLIENT_CONFIG) {
-              ret_status = esp_ble_gattc_write_char_descr(
+                ret_status = esp_ble_gattc_write_char_descr(
                   gattc_if, gl_profile_tab[PROFILE_A_APP_ID].conn_id, descr_elem_result[0].handle,
-                  sizeof(notify_en), (uint8_t *)&notify_en, ESP_GATT_WRITE_TYPE_RSP,
+                  sizeof(notify_en), (uint8_t *)&notify_en, ESP_GATT_WRITE_TYPE_NO_RSP,
                   ESP_GATT_AUTH_REQ_NONE);
             }
 
@@ -356,15 +356,17 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
     case ESP_GATTC_NOTIFY_EVT:
       if (p_data->notify.is_notify) {
         // TODO, verify what characteristic is being notified
-#ifdef DEBUG_TIMERS
-        //processFrame(p_data->notify.value,
-          //           p_data->notify.value_len);  // Used to decode the channel data for debugging
-#endif
+//#ifdef DEBUG_TIMERS
+        processFrame(p_data->notify.value, p_data->notify.value_len);  // Used to decode the channel data
+//#endif
         /*printf("ToUART");
         for(int i=0; i < p_data->notify.value_len; i++) {
           printf("%.2x ", p_data->notify.value[i]);
         }
         printf("\n");*/
+       //ESP_LOGI(GATTC_TAG, "p_data->notify.value = %d %d %d", channeldata[0], channeldata[1], channeldata[2]);    
+
+
         uart_write_bytes(uart_num, (void *)p_data->notify.value,
                          p_data->notify.value_len);  // Write the received data to the UART port
 
@@ -390,7 +392,7 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
       }
       esp_ble_gattc_write_char(gattc_if, gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                gl_profile_tab[PROFILE_A_APP_ID].char_handle,
-                               sizeof(write_char_data), write_char_data, ESP_GATT_WRITE_TYPE_RSP,
+                               sizeof(write_char_data), write_char_data, ESP_GATT_WRITE_TYPE_NO_RSP,
                                ESP_GATT_AUTH_REQ_NONE);
       break;
     case ESP_GATTC_SRVC_CHG_EVT: {
@@ -508,6 +510,7 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
 static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if,
                          esp_ble_gattc_cb_param_t *param)
 {
+  //ESP_LOGI(GATTC_TAG, "EVT %d, gattc if %d", event, gattc_if);
   /* If event is register event, store the gattc_if for each profile */
   if (event == ESP_GATTC_REG_EVT) {
     if (param->reg.status == ESP_GATT_OK) {
@@ -575,10 +578,11 @@ void btc_connect(esp_bd_addr_t addr)
   char saddr[13];
   memcpy(rmtbtaddress, addr, sizeof(esp_bd_addr_t));
 
-  bool connstarted=false;
+  //bool connstarted=false;
   for(int i=0; i < bt_scanned_address_cnt; i++) {
     if(memcmp(btc_scanned_addresses[i].addr, rmtbtaddress, sizeof(esp_bd_addr_t)) == 0) {
       printf("Connecting to %s\r\n", btaddrtostr(saddr, addr));
+      //esp_ble_gap_stop_scanning();
       if (btc_scanned_addresses[i].type == BLE_ADDR_TYPE_PUBLIC)
         esp_ble_gattc_open(gl_profile_tab[PROFILE_A_APP_ID].gattc_if, addr, BLE_ADDR_TYPE_PUBLIC, true);
       else if (btc_scanned_addresses[i].type == BLE_ADDR_TYPE_RANDOM)
@@ -586,9 +590,10 @@ void btc_connect(esp_bd_addr_t addr)
       break;
     }
   }
-  if(!connstarted) {
+  // bug - выполняется всегда
+  /*if(!connstarted) {
     printf("Unable to connect to %s, address not found in storage\r\n", btaddrtostr(saddr, addr));
-  }
+  }*/
 
 }
 

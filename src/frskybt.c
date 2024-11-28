@@ -16,14 +16,15 @@
 #define BLUETOOTH_LINE_LENGTH 32
 #define BLUETOOTH_PACKET_SIZE 14
 
-uint16_t channeldata[BT_CHANNELS];
+uint16_t channeldata[BT_CHANNELS] = {1500,1500,1500,1500,1500,1500,1500,1500};
+volatile uint8_t fs_counter = 0; // счетчик для фэйлсэйва по дисконнекту
 
-/**
- * @brief Displays the decoded channel values and time since last receive
- *
- * @param btdata
- * @param len
- */
+
+
+void resetChannelData(void)
+{
+  for(int b=0; b<8; b++) channeldata[b] = 1500;
+}
 
 void logBTFrame(bool valid, char message[])
 {
@@ -39,6 +40,11 @@ void logBTFrame(bool valid, char message[])
         timestamp, channeldata[0], channeldata[1], channeldata[2], channeldata[3], channeldata[4],
         channeldata[5], channeldata[6], channeldata[7]);
   }
+}
+
+uint16_t* getChannels()
+{
+  return channeldata;
 }
 
 static uint8_t buffer[BLUETOOTH_LINE_LENGTH + 1];
@@ -118,6 +124,8 @@ void processTrainerFrame(const uint8_t *otxbuffer)
     channeldata[channel + 1] = ((otxbuffer[i + 1] & 0x0f) << 4) + ((otxbuffer[i + 2] & 0xf0) >> 4) +
                                ((otxbuffer[i + 2] & 0x0f) << 8);
   }
+
+  fs_counter = 0;
 
   if (settings.role == ROLE_BLE_PERIPHERAL) {
     rsndbuf[rsndbufindex++] = 0x7e;
@@ -199,12 +207,12 @@ void frSkyProcessByte(uint8_t data)
     if (crc == otxbuffer[BLUETOOTH_PACKET_SIZE - 1]) {
       if (otxbuffer[0] == TRAINER_FRAME) {
         processTrainerFrame(otxbuffer);
-       // logBTFrame(true, "");
+        //logBTFrame(true, "");
       } else {
-        //logBTFrame(false, "Not a trainer frame");
+        logBTFrame(false, "Not a trainer frame");
       }
     } else {
-      //logBTFrame(false, "CRC Fault");
+      logBTFrame(false, "CRC Fault");
     }
     dataState = STATE_DATA_IDLE;
   } else {
