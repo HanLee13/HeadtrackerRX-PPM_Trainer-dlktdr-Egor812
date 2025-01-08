@@ -14,7 +14,7 @@ Seed Studio XIAO-ESP32C3
 
 Jack 3.5 4pin  
 |= = = >  
-ABCD  
+ A B C D  
 D - PPM - D0  
 B and C - GND  
 A - not used  
