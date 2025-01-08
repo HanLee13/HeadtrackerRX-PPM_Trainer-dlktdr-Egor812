@@ -66,5 +66,5 @@ jobs:
           name: firmware
           path: |
             /src/.pio/build/*/*.bin
-          retention-days: 60
+          retention-days: 180
           if-no-files-found: error
