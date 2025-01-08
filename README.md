@@ -1,33 +1,34 @@
-# BT-PPM Module
-Bluetooth приемник для Headtracker-а на протоколк FRSky Para 
-  
+Fork by Egor812 - Readme Translated to English
+
+BT-PPM Module
+Bluetooth receiver for Headtracker on FRSky Para protocol
+
 Based on BTWifiModule by dlktdr (https://github.com/dlktdr/BTWifiModule)
 
-## Описание
-Получаем по Bluetooth данные от HeadTracker по протоколу FRSky Para. В моем случае используется https://github.com/ysoldak/HeadTracker на Seed Studio nRF52840 Sense.
-Отправляем на тренерский разъем PPM данные.  
+Description
+We receive data from HeadTracker via Bluetooth using the FRSky Para protocol. In my case, https://github.com/ysoldak/HeadTracker is used on Seed Studio nRF52840 Sense. We send data to the PPM trainer connector.
 
-Нужно тем, кто не хочет впаивать BT приемник в аппаратуру.
+Needed by those who don't want to solder a BT receiver into the equipment.
 
-## Железо
+Iron
 Seed Studio XIAO-ESP32C3
 
-Jack 3.5 4pin  
-|= = = >  
- A B C D  
-D - PPM - D0  
-B и С - GND  
-A - не используется  
+Jack 3.5 4pin
+|= = = >
+ABCD
+D - PPM - D0
+B and C - GND
+A - not used
 
-## Настройки аппаратуры
-Model-Setup-Trainer mode Master/Jack  
-Sys-Trainer - каналы и тримеры.
+Hardware settings
+Model-Setup-Trainer mode Master/Jack
+Sys-Trainer - channels and trimmers.
 
-## Настройка приемника
-Подключить по USB. В serial monitor:  
-Ввести команду AT+DISC?  
-В списке найти адрес передатчика. Ввести AT+CONадрес (напимер AT+CONDCB116851608)  
-Теперь этот приемник будет автоматически подключатся к этому передатчику  
+Setting up the receiver
+Connect via USB. In serial monitor:
+Enter the command AT+DISC?
+Find the transmitter address in the list. Enter AT+CONaddress (e.g. AT+CONDCB116851608)
+Now this receiver will automatically connect to this transmitter
 
-## Примечание
-Работоспособность проверена только на ESP32C3
+Note
+Performance tested only on ESP32C3
