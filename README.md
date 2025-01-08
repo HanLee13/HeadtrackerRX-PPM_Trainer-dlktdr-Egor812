@@ -1,9 +1,7 @@
-# Fork by Egor812 - Readme Translated to English
-
 # BT-PPM Module
 Bluetooth receiver for Headtracker on FRSky Para protocol  
-
 Based on BTWifiModule by dlktdr (https://github.com/dlktdr/BTWifiModule)  
+HeadtrackerRX Fork by Egor812 - Readme Translated to English  
 
 ## Description
 We receive data from HeadTracker via Bluetooth using the FRSky Para protocol. In my case, https://github.com/ysoldak/HeadTracker is used on Seed Studio nRF52840 Sense. We send data to the PPM trainer connector.  
