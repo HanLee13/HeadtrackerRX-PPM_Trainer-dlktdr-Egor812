@@ -35,9 +35,11 @@ Sys-Trainer - channels and trimmers.
 ## Flash Firmware
 Web Flash Tool by Spacehuhn (https://esp.huhn.me/)  
 Click ERASE and when completed select  
+```
 0x0 bootloader.bin  
 0x8000 partitions.bin  
-0x10000 firmware.bin  
+0x10000 firmware.bin
+```
 Click PROGRAM, wait for it to complete, then press reset on the board and enter a serial monitor  
 
 ## Setting up the receiver
