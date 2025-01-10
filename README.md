@@ -54,4 +54,4 @@ For Example: ```AT+CONDCB116851608```
 Now this receiver will automatically connect to this transmitter  
 
 ## Note
-Performance tested only on ESP32C3  
+Testing being performed on Waveshare ESP32-C3-Zero, This is a mini ESP32C3 board with an onboard antenna  
