@@ -27,6 +27,7 @@ Jack 3.5mm Mono TS
 A - GND  
 D - D0  
 ```
+Note: D0 is likely GPIO3  
 
 ## Hardware settings
 Model-Setup-Trainer mode Master/Jack  
