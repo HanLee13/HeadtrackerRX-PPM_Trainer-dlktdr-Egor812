@@ -36,6 +36,7 @@ Sys-Trainer - channels and trimmers.
 ## Flash Firmware
 ```The latest precompiled firmware files can be downloaded by clicking on ACTIONS above, selecting a recent workflow and downloading the firmware file listed under ARTIFACTS, eventually after some testing I will upload them to the releases page, for now you must be logged in to view github actions artifacts```  
 Web Flash Tool by Spacehuhn (https://esp.huhn.me/)  
+Try pressing boot + reset at the same time and then releasing at the same time if you have trouble connecting your board  
 Click ERASE and when completed select  
 ```
 0x0 bootloader.bin  
