@@ -55,5 +55,5 @@ Now this receiver will automatically connect to this transmitter
 
 ## Note
 Testing for this firmware is being performed on Waveshare ESP32-C3-Zero, This is a mini ESP32C3 board with an onboard antenna  
-The ESP32C3 interfaces with a Radiomaster radio using a trainer cable soldered to ground and D0 and is powered via the power and ground sbus wires from the radiomaster radio  
+The ESP32C3 interfaces with a Radiomaster radio using a trainer cable soldered to ground and D0 and is powered via the power and ground from the radiomaster aux port  
 The headtracker module that the ESP32C3 interfaces with is a Xiao nRF52840 Sense running the following headtracker firmware (https://github.com/ysoldak/HeadTracker) by ysoldak  
