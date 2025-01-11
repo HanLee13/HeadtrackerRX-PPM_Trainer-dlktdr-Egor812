@@ -1,5 +1,5 @@
 # BT-PPM Module
-Bluetooth receiver for Headtracker on FRSky Para protocol  
+ESP32C3 Bluetooth receiver for a wireless Headtracker on FRSky Para protocol  
 Based on BTWifiModule by dlktdr (https://github.com/dlktdr/BTWifiModule)  
 HeadtrackerRX Fork by Egor812 (https://github.com/Egor812/HeadtrackerRX)  
 Readme Translated to English - Compiled firmware located as artifacts under github actions  
