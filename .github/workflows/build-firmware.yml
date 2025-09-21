@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container:
       image: shaguarger/platformio
       volumes:
@@ -45,7 +45,7 @@ jobs:
           key: ${{ runner.os }}-pio
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
 
       - name: Install PlatformIO
         run: |
