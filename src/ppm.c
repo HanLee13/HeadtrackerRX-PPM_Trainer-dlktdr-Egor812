@@ -17,6 +17,8 @@
 //#include "bt_client.h"
 #include <esp_timer.h>
 #include "driver/rmt_tx.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 uint16_t* channels;
 
@@ -103,9 +105,30 @@ void ppmTask(void *pvParameters) {
     while (1) {
         channels = getChannels();
         generatePPM();
-        while ( !rmt_on_duty && (esp_timer_get_time() - last_frame_time >= PPM_FRAME) ) {
-            taskYIELD();  // Give time to other tasks
+        // Always wait for the full PPM frame period (22.5ms) regardless of RMT completion
+        int64_t start_wait = esp_timer_get_time();
+        while ((esp_timer_get_time() - start_wait) < PPM_FRAME) {
+            // Use microsecond precision timing for maximum accuracy
+            int64_t elapsed = esp_timer_get_time() - start_wait;
+            int64_t remaining = PPM_FRAME - elapsed;
+
+            // Use adaptive delays based on remaining time
+            if (remaining > 3000) {  // More than 3ms remaining
+                vTaskDelay(pdMS_TO_TICKS(2));  // Delay 2ms
+            } else if (remaining > 1000) {  // More than 1ms remaining
+                vTaskDelay(pdMS_TO_TICKS(1));  // Delay 1ms
+            } else if (remaining > 100) {  // More than 100μs remaining
+                // Use a smaller delay for better precision
+                vTaskDelay(1);  // Minimum delay (1 tick ~ 100μs)
+            } else if (remaining > 10) {  // More than 10μs remaining
+                // For very small delays, just yield
+                taskYIELD();
+            } else {
+                // For the last microseconds, minimal delay
+                vTaskDelay(1);  // Minimum delay
+            }
         }
+        // At this point, exactly PPM_FRAME microseconds have elapsed, start next frame
     }
 
 }
