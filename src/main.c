@@ -39,13 +39,25 @@ nvs_handle_t nvs_flsh_btw;
 #if defined(LEDPIN)
 void runBlinky()
 {
-  gpio_set_direction(LEDPIN, GPIO_MODE_DEF_OUTPUT);
+  // Initialize LED pin
+  esp_err_t err = gpio_set_direction(LEDPIN, GPIO_MODE_DEF_OUTPUT);
+  if (err != ESP_OK) {
+    // If GPIO initialization fails, just return instead of causing a reboot
+    return;
+  }
+
   // Turn LED off initially
   gpio_set_level(LEDPIN, 0);
 
   for (;;) {
     // Check if either client or server is connected
-    if (btc_connected || btp_connected) {
+    // Use local variables to avoid potential race conditions
+    bool is_connected = false;
+
+    // Safely check connection status
+    is_connected = btc_connected || btp_connected;
+
+    if (is_connected) {
       // Bluetooth connected - LED on constantly
       gpio_set_level(LEDPIN, 1);
       vTaskDelay(pdMS_TO_TICKS(1000)); // Check connection status every second
@@ -64,17 +76,41 @@ void app_main(void)
 {
   createChannelsDataMutex();
 
-  TaskHandle_t ppmTaskHandle = NULL; // PPM Task Handle    
-  xTaskCreate(ppmTask, "PPM_Task", 4096, NULL, configMAX_PRIORITIES - 1, &ppmTaskHandle); // High priority
+#ifdef DEBUG
+  printf("Starting app_main...\n");
+#endif
+
+  TaskHandle_t ppmTaskHandle = NULL; // PPM Task Handle
+  BaseType_t ppmTaskResult = xTaskCreate(ppmTask, "PPM_Task", 4096, NULL, configMAX_PRIORITIES - 1, &ppmTaskHandle); // High priority
+  if (ppmTaskResult != pdPASS) {
+#ifdef DEBUG
+    printf("Failed to create PPM task\n");
+#endif
+    return;
+  }
+  configASSERT(ppmTaskHandle);
 
   TaskHandle_t tUartHnd = NULL;
-  xTaskCreate(runUARTHead, "UART", 8192, NULL, configMAX_PRIORITIES - 2, &tUartHnd);
+  BaseType_t uartTaskResult = xTaskCreate(runUARTHead, "UART", 8192, NULL, configMAX_PRIORITIES - 2, &tUartHnd);
+  if (uartTaskResult != pdPASS) {
+#ifdef DEBUG
+    printf("Failed to create UART task\n");
+#endif
+    return;
+  }
   configASSERT(tUartHnd);
 
 #if defined(LEDPIN)
   TaskHandle_t tBlinkHnd = NULL;
-  xTaskCreate(runBlinky, "Blinky", 1024, NULL, tskIDLE_PRIORITY, &tBlinkHnd);
-  configASSERT(tBlinkHnd);
+  BaseType_t blinkyTaskResult = xTaskCreate(runBlinky, "Blinky", 2048, NULL, tskIDLE_PRIORITY, &tBlinkHnd);
+  if (blinkyTaskResult != pdPASS) {
+#ifdef DEBUG
+    printf("Failed to create Blinky task\n");
+#endif
+    // Don't return here as LED is optional
+  } else {
+    configASSERT(tBlinkHnd);
+  }
 #endif
 
   esp_err_t ret;
@@ -89,5 +125,15 @@ void app_main(void)
 
   ESP_ERROR_CHECK(nvs_open("btwifi", NVS_READWRITE, &nvs_flsh_btw));
 
-  loadSettings();
+    loadSettings();
+
+  // Initialize Bluetooth
+  bt_init();
+
+  // Initialize Bluetooth client or server based on settings
+  if (settings.role == ROLE_BLE_CENTRAL) {
+    btcInit();
+  } else if (settings.role == ROLE_BLE_PERIPHERAL) {
+    btpInit();
+  }
 }
