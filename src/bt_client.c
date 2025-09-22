@@ -591,7 +591,7 @@ void btc_connect(esp_bd_addr_t addr)
       break;
     }
   }
-  // bug - выполняется всегда
+  // bug - always executed
   /*if(!connstarted) {
     printf("Unable to connect to %s, address not found in storage\r\n", btaddrtostr(saddr, addr));
   }*/

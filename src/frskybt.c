@@ -20,7 +20,7 @@ uint16_t channeldata[BT_CHANNELS] = {1500,1500,1500,1500,1500,1500,1500,1500};
 SemaphoreHandle_t channels_mutex = NULL;
 
 //uint16_t channeldata_ema[BT_CHANNELS] = {1500,1500,1500,1500,1500,1500,1500,1500};
-//float alpha = 0.1; // Коэффициент сглаживания (чем меньше, тем сильнее сглаживание)
+//float alpha = 0.1; // Smoothing coefficient (the smaller, the stronger the smoothing)
 
 
 void createChannelsDataMutex(void)
@@ -63,7 +63,7 @@ uint16_t* getChannels()
         ESP_LOGE("Channels", "Failed to take mutex");
     }
     return channels_copy;
-    //return channeldata; //старый добрый незащищенный вариант
+    //return channeldata; //old good unprotected version
 }
 
 static uint8_t buffer[BLUETOOTH_LINE_LENGTH + 1];
@@ -144,7 +144,7 @@ void processTrainerFrame(const uint8_t *otxbuffer)
                                ((otxbuffer[i + 2] & 0x0f) << 8);
   }
 
-    //EMA Экспоненциальное скользящее среднее
+    //EMA Exponential Moving Average
     //for (uint8_t channel = 0; channel < 3; channel++) {
     //channeldata_ema[channel] = alpha * channeldata[channel] + (1 - alpha) * channeldata_ema[channel];    
     //}

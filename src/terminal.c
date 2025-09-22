@@ -227,7 +227,7 @@ void runUARTHead()
   }  
 
     //snprintf(reusablebuff, sizeof(reusablebuff), "\r\nSerial monitor test\r\n"); 
-    //usb_serial_jtag_write_bytes((const char *) reusablebuff, strlen(reusablebuff), 20 / portTICK_PERIOD_MS); //как вариант
+    //usb_serial_jtag_write_bytes((const char *) reusablebuff, strlen(reusablebuff), 20 / portTICK_PERIOD_MS); //as an option
 
   ESP_LOGI(LOG_UART, "Waiting for settings to be read");
   while (!settings_ok) {

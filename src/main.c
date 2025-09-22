@@ -51,8 +51,8 @@ void app_main(void)
 {
   createChannelsDataMutex();
 
-  TaskHandle_t ppmTaskHandle = NULL; // Хэндл задачи PPM    
-  xTaskCreate(ppmTask, "PPM_Task", 4096, NULL, configMAX_PRIORITIES - 1, &ppmTaskHandle); // Высокий приоритет
+  TaskHandle_t ppmTaskHandle = NULL; // PPM Task Handle    
+  xTaskCreate(ppmTask, "PPM_Task", 4096, NULL, configMAX_PRIORITIES - 1, &ppmTaskHandle); // High priority
 
   TaskHandle_t tUartHnd = NULL;
   xTaskCreate(runUARTHead, "UART", 8192, NULL, configMAX_PRIORITIES - 2, &tUartHnd);

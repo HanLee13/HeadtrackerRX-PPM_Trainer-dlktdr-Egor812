@@ -26,7 +26,7 @@
 #define UART_TXPIN 4
 #define UART_RXPIN 5
 //#define LEDPIN 6
-#define PPM_PIN 2  //GPIO2 = D0 - Пин подключения PPM
+#define PPM_PIN 2  //GPIO2 = D0 - PPM connection pin
 
 #else
 
@@ -40,7 +40,7 @@
 #define BAUD_DEFAULT 115200
 #define BAUD_MAXIMUM 921600
 
-//#define UART_OUTPUT // выводить полученные по BT данные в UART
+//#define UART_OUTPUT // output received BT data to UART
 
 // Optional Debugging Options
 #define DEBUG_TIMERS
