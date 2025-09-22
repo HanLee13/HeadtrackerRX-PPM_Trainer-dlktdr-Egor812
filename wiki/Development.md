@@ -62,6 +62,17 @@
 - `generatePPM()` - 生成 PPM 信号
 - `ppmTask()` - PPM 任务主循环
 
+### LED 指示灯控制
+
+项目支持 LED 指示灯功能，用于显示蓝牙连接状态：
+- 蓝牙未连接时：LED 按1秒间隔闪烁
+- 蓝牙连接成功后：LED 常亮
+
+LED 引脚定义在 `defines.h` 文件中，默认使用 GPIO8（ESP32-C3-Mini开发板的板载LED）。如果需要修改引脚，请更新 LEDPIN 宏定义。
+
+关键函数：
+- `runBlinky()` - LED 控制任务，在 main.c 中实现
+
 ### 蓝牙通信 (bt_client.c, bt_server.c)
 
 蓝牙模块实现了 GATT 客户端功能：

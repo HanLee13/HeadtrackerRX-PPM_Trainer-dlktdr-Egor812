@@ -31,6 +31,8 @@
 #include "nvs_flash.h"
 #include "settings.h"
 #include "terminal.h"
+#include "bt_client.h"
+#include "bt_server.h"
 
 nvs_handle_t nvs_flsh_btw;
 
@@ -38,11 +40,22 @@ nvs_handle_t nvs_flsh_btw;
 void runBlinky()
 {
   gpio_set_direction(LEDPIN, GPIO_MODE_DEF_OUTPUT);
+  // Turn LED off initially
+  gpio_set_level(LEDPIN, 0);
+
   for (;;) {
-    gpio_set_level(LEDPIN, 0);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gpio_set_level(LEDPIN, 1);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    // Check if either client or server is connected
+    if (btc_connected || btp_connected) {
+      // Bluetooth connected - LED on constantly
+      gpio_set_level(LEDPIN, 1);
+      vTaskDelay(pdMS_TO_TICKS(1000)); // Check connection status every second
+    } else {
+      // Bluetooth not connected - blink every 1 second
+      gpio_set_level(LEDPIN, 1);
+      vTaskDelay(pdMS_TO_TICKS(1000));
+      gpio_set_level(LEDPIN, 0);
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
   }
 }
 #endif
