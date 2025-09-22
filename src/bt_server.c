@@ -409,7 +409,7 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
       gl_profile_tab[PROFILE_TRAINER_SL_ID].conn_id = param->connect.conn_id;
       // start sent the update connection parameters to the peer device.
       esp_ble_gap_update_conn_params(&conn_params);
-      mempcpy(rmtbtaddress, param->connect.remote_bda, sizeof(esp_bd_addr_t));
+      memcpy(rmtbtaddress, param->connect.remote_bda, sizeof(esp_bd_addr_t));
 
       btp_connected = true;
       break;
