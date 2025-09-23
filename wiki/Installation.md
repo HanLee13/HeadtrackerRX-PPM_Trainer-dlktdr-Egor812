@@ -32,6 +32,10 @@ A - GND
 D - D0 (GPIO2)
 ```
 
+#### LED 指示灯连接（可选）
+
+项目支持LED指示灯功能，默认使用GPIO8引脚（ESP32-C3-Mini开发板的板载LED）。如果您的开发板使用不同的GPIO引脚连接LED，请修改 defines.h 文件中的 LEDPIN 定义。
+
 ### 硬件设置
 
 1. 在遥控器上设置：

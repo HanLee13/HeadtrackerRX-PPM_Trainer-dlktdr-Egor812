@@ -3,7 +3,7 @@
 #define DEBUG
 
 #if defined(PCB_PICO)
-//#define LEDPIN 6
+#define LEDPIN 8
 #define UART_NUM UART_NUM_2
 #define UART_TXPIN 4
 #define UART_RXPIN 5
@@ -25,7 +25,7 @@
 #define UART_NUM UART_NUM_0
 #define UART_TXPIN 4
 #define UART_RXPIN 5
-//#define LEDPIN 6
+#define LEDPIN 8
 #define PPM_PIN 2  //GPIO2 = D0 - PPM connection pin
 
 #else
